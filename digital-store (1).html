@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SimpleLife Digital — Practical Guides for a Better Life</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Syne:wght@400;600;700;800&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0e0c0a;
+  --ink2:#1c1814;
+  --amber:#e07b2a;
+  --amber2:#f5a24b;
+  --amber3:#ffd59e;
+  --cream:#faf6ef;
+  --cream2:#f0e9dc;
+  --muted:#8a7d6d;
+  --white:#ffffff;
+  --card:#ffffff;
+  --shadow:0 4px 40px rgba(0,0,0,0.10);
+  --shadow-lg:0 20px 80px rgba(0,0,0,0.18);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Syne',sans-serif;background:var(--cream);color:var(--ink);overflow-x:hidden;cursor:none}
+
+/* ── Custom Cursor ── */
+.cursor{position:fixed;width:12px;height:12px;background:var(--amber);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform .15s,width .2s,height .2s,opacity .2s;mix-blend-mode:multiply}
+.cursor-ring{position:fixed;width:36px;height:36px;border:1.5px solid var(--amber);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:transform .08s,width .25s,height .25s,border-color .2s}
+.cursor.expanded{width:48px;height:48px;opacity:.3}
+.cursor-ring.expanded{width:0;height:0;border-color:transparent}
+
+/* ── Noise Texture Overlay ── */
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9997;opacity:.5}
+
+/* ── Nav ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 60px;display:flex;align-items:center;justify-content:space-between;transition:background .3s,box-shadow .3s}
+nav.scrolled{background:rgba(250,246,239,0.92);backdrop-filter:blur(16px);box-shadow:0 1px 0 rgba(0,0,0,0.08)}
+.nav-logo{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:var(--ink);text-decoration:none;letter-spacing:-0.3px}
+.nav-logo span{color:var(--amber)}
+.nav-links{display:flex;gap:36px;align-items:center}
+.nav-links a{text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;transition:color .2s}
+.nav-links a:hover{color:var(--ink)}
+.nav-cta{background:var(--ink);color:var(--cream)!important;padding:10px 22px;border-radius:100px;transition:background .2s!important}
+.nav-cta:hover{background:var(--amber)!important;color:var(--white)!important}
+.nav-hamburger{display:none;flex-direction:column;gap:5px;cursor:none;background:none;border:none;padding:4px}
+.nav-hamburger span{display:block;width:24px;height:2px;background:var(--ink);border-radius:2px;transition:.3s}
+@media(max-width:768px){
+  nav{padding:18px 24px}
+  .nav-links{display:none;position:fixed;inset:0;background:var(--cream);flex-direction:column;justify-content:center;align-items:center;gap:32px;z-index:99}
+  .nav-links.open{display:flex}
+  .nav-links a{font-size:18px}
+  .nav-hamburger{display:flex;z-index:101}
+}
+
+/* ── Hero ── */
+.hero{min-height:100vh;display:flex;align-items:center;position:relative;padding:120px 60px 80px;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:linear-gradient(135deg,#0e0c0a 0%,#1c1814 50%,#2a1f12 100%);z-index:0}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none}
+.hero-orb-1{width:600px;height:600px;background:radial-gradient(circle,rgba(224,123,42,0.25),transparent 70%);top:-100px;right:-100px}
+.hero-orb-2{width:400px;height:400px;background:radial-gradient(circle,rgba(245,162,75,0.12),transparent 70%);bottom:0;left:10%}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:60px 60px;z-index:1}
+.hero-content{position:relative;z-index:2;max-width:1200px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(224,123,42,0.4);border-radius:100px;padding:7px 18px;margin-bottom:28px;font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--amber2);text-transform:uppercase}
+.hero-badge::before{content:'';width:6px;height:6px;background:var(--amber);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+h1.hero-title{font-family:'Playfair Display',serif;font-size:clamp(44px,6vw,76px);line-height:1.05;color:var(--white);letter-spacing:-1px;margin-bottom:24px}
+h1.hero-title em{color:var(--amber2);font-style:italic;display:block}
+.hero-sub{font-family:'Lora',serif;font-size:18px;color:rgba(255,255,255,0.55);line-height:1.7;margin-bottom:40px;font-style:italic}
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:15px 30px;border-radius:100px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;text-decoration:none;cursor:none;transition:all .25s;letter-spacing:.04em;border:none}
+.btn-amber{background:linear-gradient(135deg,var(--amber),var(--amber2));color:var(--white);box-shadow:0 8px 32px rgba(224,123,42,0.4)}
+.btn-amber:hover{transform:translateY(-3px);box-shadow:0 16px 48px rgba(224,123,42,0.5)}
+.btn-ghost{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,0.15)}
+.btn-ghost:hover{background:rgba(255,255,255,0.14)}
+.hero-stats{display:flex;gap:32px;margin-top:48px}
+.hero-stat-num{font-family:'Playfair Display',serif;font-size:32px;font-weight:900;color:var(--white)}
+.hero-stat-label{font-size:12px;color:rgba(255,255,255,0.4);letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
+.hero-visual{position:relative}
+.hero-card-stack{position:relative;height:440px}
+.h-card{position:absolute;border-radius:20px;padding:28px;backdrop-filter:blur(12px)}
+.h-card-main{width:300px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);top:20px;left:50%;transform:translateX(-50%);animation:floatA 6s ease-in-out infinite}
+.h-card-2{width:220px;background:linear-gradient(135deg,var(--amber),var(--amber2));bottom:40px;left:0;animation:floatB 7s ease-in-out infinite}
+.h-card-3{width:180px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);top:60px;right:0;animation:floatC 8s ease-in-out infinite}
+@keyframes floatA{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-14px)}}
+@keyframes floatB{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-10px) rotate(-3deg)}}
+@keyframes floatC{0%,100%{transform:translateY(0) rotate(4deg)}50%{transform:translateY(-8px) rotate(4deg)}}
+.h-card-icon{font-size:32px;margin-bottom:12px}
+.h-card-title{font-size:14px;font-weight:700;color:var(--white);margin-bottom:6px}
+.h-card-sub{font-size:12px;color:rgba(255,255,255,0.5)}
+.h-card-price{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--white);margin-top:14px}
+.h-card-bar{height:4px;background:rgba(255,255,255,0.15);border-radius:4px;margin-top:12px;overflow:hidden}
+.h-card-bar-fill{height:100%;background:var(--amber2);border-radius:4px;width:72%}
+@media(max-width:900px){
+  .hero{padding:100px 24px 60px}
+  .hero-content{grid-template-columns:1fr;gap:40px;text-align:center}
+  .hero-actions{justify-content:center}
+  .hero-stats{justify-content:center}
+  .hero-visual{display:none}
+}
+
+/* ── Marquee ── */
+.marquee-wrap{background:var(--amber);padding:14px 0;overflow:hidden}
+.marquee-track{display:flex;gap:0;animation:marquee 22s linear infinite;width:max-content}
+.marquee-item{white-space:nowrap;padding:0 40px;font-size:13px;font-weight:700;letter-spacing:.12em;color:var(--white);text-transform:uppercase;display:flex;align-items:center;gap:16px}
+.marquee-item::after{content:'◆';font-size:8px;opacity:.6}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ── Section Shared ── */
+section{padding:100px 60px}
+@media(max-width:768px){section{padding:70px 24px}}
+.section-label{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);margin-bottom:16px}
+.section-label::before{content:'';width:28px;height:2px;background:var(--amber)}
+.section-title{font-family:'Playfair Display',serif;font-size:clamp(32px,5vw,54px);line-height:1.1;letter-spacing:-0.5px;margin-bottom:16px}
+.section-sub{font-family:'Lora',serif;font-size:17px;color:var(--muted);line-height:1.7;font-style:italic;max-width:560px}
+.section-header{margin-bottom:64px}
+.max-w{max-width:1200px;margin:0 auto}
+
+/* ── Products ── */
+#products{background:var(--cream)}
+.products-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+@media(max-width:900px){.products-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:580px){.products-grid{grid-template-columns:1fr}}
+
+.product-card{background:var(--white);border-radius:24px;overflow:hidden;box-shadow:var(--shadow);transition:transform .3s,box-shadow .3s;position:relative;cursor:none}
+.product-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-lg)}
+.product-card.featured{grid-column:span 1;border:2px solid var(--amber)}
+.product-thumb{height:180px;display:flex;align-items:center;justify-content:center;font-size:56px;position:relative;overflow:hidden}
+.product-thumb::after{content:'';position:absolute;inset:0;opacity:.12}
+.thumb-1{background:linear-gradient(135deg,#1a0f00,#3d2200)}.thumb-1::after{background:var(--amber)}
+.thumb-2{background:linear-gradient(135deg,#0a1a0f,#0d3320)}.thumb-2::after{background:#2ecc8a}
+.thumb-3{background:linear-gradient(135deg,#0a0f1a,#0d1a44)}.thumb-3::after{background:#5b8dee}
+.thumb-4{background:linear-gradient(135deg,#1a0a1a,#3d0d3d)}.thumb-4::after{background:#c084fc}
+.thumb-5{background:linear-gradient(135deg,#1a1000,#3d2800)}.thumb-5::after{background:#f5c518}
+.thumb-6{background:linear-gradient(135deg,#001a1a,#003d3d)}.thumb-6::after{background:#22d3ee}
+.product-badge{position:absolute;top:14px;right:14px;background:var(--amber);color:var(--white);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:100px}
+.product-body{padding:24px}
+.product-category{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:8px}
+.product-name{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;line-height:1.25;margin-bottom:10px;color:var(--ink)}
+.product-desc{font-family:'Lora',serif;font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:18px;font-style:italic}
+.product-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.product-price{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--ink)}
+.product-price s{font-size:16px;color:var(--muted);font-weight:400;margin-right:4px}
+.product-stars{font-size:13px;color:var(--amber);letter-spacing:1px}
+.product-reviews{font-size:11px;color:var(--muted);margin-top:2px}
+.btn-buy{display:inline-flex;align-items:center;gap:6px;background:var(--ink);color:var(--white);padding:11px 20px;border-radius:100px;font-size:13px;font-weight:700;text-decoration:none;cursor:none;transition:background .2s;letter-spacing:.04em;border:none;width:100%;justify-content:center;margin-top:14px}
+.btn-buy:hover{background:var(--amber)}
+.btn-buy svg{width:14px;height:14px;transition:transform .2s}
+.btn-buy:hover svg{transform:translateX(3px)}
+
+/* ── Features ── */
+#features{background:var(--ink2)}
+#features .section-title{color:var(--white)}
+#features .section-sub{color:rgba(255,255,255,0.45)}
+#features .section-label{color:var(--amber2)}
+#features .section-label::before{background:var(--amber2)}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+@media(max-width:768px){.features-grid{grid-template-columns:1fr}}
+.feature-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:32px;transition:border-color .3s,transform .3s}
+.feature-card:hover{border-color:rgba(224,123,42,0.4);transform:translateY(-4px)}
+.feature-icon{width:52px;height:52px;border-radius:14px;background:rgba(224,123,42,0.12);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:20px}
+.feature-title{font-size:17px;font-weight:700;color:var(--white);margin-bottom:10px}
+.feature-desc{font-family:'Lora',serif;font-size:14px;color:rgba(255,255,255,0.45);line-height:1.7;font-style:italic}
+
+/* ── Testimonials ── */
+#testimonials{background:var(--cream2)}
+.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+@media(max-width:900px){.testi-grid{grid-template-columns:1fr}}
+.testi-card{background:var(--white);border-radius:20px;padding:32px;box-shadow:var(--shadow);position:relative}
+.testi-card::before{content:'"';position:absolute;top:20px;right:24px;font-family:'Playfair Display',serif;font-size:80px;color:var(--amber3);line-height:1;pointer-events:none}
+.testi-stars{color:var(--amber);font-size:14px;letter-spacing:2px;margin-bottom:16px}
+.testi-text{font-family:'Lora',serif;font-size:15px;color:var(--ink);line-height:1.75;font-style:italic;margin-bottom:22px}
+.testi-author{display:flex;align-items:center;gap:12px}
+.testi-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--white);flex-shrink:0}
+.av1{background:linear-gradient(135deg,#e07b2a,#f5a24b)}
+.av2{background:linear-gradient(135deg,#2ecc8a,#22d3ee)}
+.av3{background:linear-gradient(135deg,#5b8dee,#c084fc)}
+.av4{background:linear-gradient(135deg,#f5c518,#e07b2a)}
+.av5{background:linear-gradient(135deg,#c084fc,#5b8dee)}
+.av6{background:linear-gradient(135deg,#22d3ee,#2ecc8a)}
+.testi-name{font-size:14px;font-weight:700;color:var(--ink)}
+.testi-role{font-size:12px;color:var(--muted);margin-top:2px}
+.testi-featured{grid-column:span 1;border:2px solid var(--amber)}
+
+/* ── About / CTA Banner ── */
+#about{background:var(--cream);padding:100px 60px}
+@media(max-width:768px){#about{padding:70px 24px}}
+.about-inner{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+@media(max-width:768px){.about-inner{grid-template-columns:1fr;gap:40px}}
+.about-visual{position:relative}
+.about-img-box{background:linear-gradient(135deg,var(--ink),var(--ink2));border-radius:28px;height:400px;display:flex;align-items:center;justify-content:center;font-size:80px;position:relative;overflow:hidden;box-shadow:var(--shadow-lg)}
+.about-img-box::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 40%,rgba(224,123,42,0.3),transparent 60%)}
+.about-badge-float{position:absolute;bottom:-16px;right:-16px;background:var(--amber);color:var(--white);border-radius:16px;padding:16px 22px;font-family:'Playfair Display',serif;font-size:13px;font-weight:700;box-shadow:0 8px 32px rgba(224,123,42,0.4)}
+.about-badge-float strong{display:block;font-size:28px}
+.about-text .section-sub{max-width:100%}
+.check-list{list-style:none;margin:28px 0 36px;display:flex;flex-direction:column;gap:14px}
+.check-list li{display:flex;align-items:flex-start;gap:12px;font-size:15px;color:var(--ink);line-height:1.5}
+.check-list li::before{content:'✓';width:22px;height:22px;background:rgba(224,123,42,0.12);color:var(--amber);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+
+/* ── FAQ ── */
+#faq{background:var(--ink)}
+#faq .section-title{color:var(--white)}
+#faq .section-label{color:var(--amber2)}
+#faq .section-label::before{background:var(--amber2)}
+.faq-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:768px){.faq-grid{grid-template-columns:1fr}}
+.faq-item{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;transition:border-color .2s}
+.faq-item.open{border-color:rgba(224,123,42,0.4)}
+.faq-q{width:100%;background:none;border:none;padding:22px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:none;text-align:left}
+.faq-q-text{font-size:15px;font-weight:600;color:var(--white);line-height:1.4}
+.faq-icon{width:28px;height:28px;border-radius:50%;background:rgba(224,123,42,0.15);color:var(--amber2);font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .3s,background .2s}
+.faq-item.open .faq-icon{transform:rotate(45deg);background:var(--amber);color:var(--white)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .35s ease,padding .25s}
+.faq-a-inner{padding:0 24px 22px;font-family:'Lora',serif;font-size:14px;color:rgba(255,255,255,0.5);line-height:1.75;font-style:italic}
+.faq-item.open .faq-a{max-height:200px}
+
+/* ── Email CTA ── */
+#cta{background:linear-gradient(135deg,var(--amber) 0%,#d4601a 100%);padding:100px 60px;text-align:center;position:relative;overflow:hidden}
+@media(max-width:768px){#cta{padding:70px 24px}}
+#cta::before{content:'';position:absolute;top:-60%;left:-10%;width:500px;height:500px;background:rgba(255,255,255,0.07);border-radius:50%;pointer-events:none}
+#cta::after{content:'';position:absolute;bottom:-40%;right:-5%;width:400px;height:400px;background:rgba(0,0,0,0.08);border-radius:50%;pointer-events:none}
+.cta-inner{position:relative;z-index:1;max-width:600px;margin:0 auto}
+.cta-inner h2{font-family:'Playfair Display',serif;font-size:clamp(32px,5vw,52px);color:var(--white);line-height:1.1;margin-bottom:16px;letter-spacing:-0.5px}
+.cta-inner p{font-family:'Lora',serif;font-size:18px;color:rgba(255,255,255,0.8);margin-bottom:36px;font-style:italic}
+.email-form{display:flex;gap:10px;max-width:440px;margin:0 auto;flex-wrap:wrap}
+.email-form input{flex:1;min-width:200px;padding:15px 22px;border-radius:100px;border:none;background:rgba(255,255,255,0.2);color:var(--white);font-family:'Syne',sans-serif;font-size:14px;outline:none;backdrop-filter:blur(8px)}
+.email-form input::placeholder{color:rgba(255,255,255,0.6)}
+.email-form input:focus{background:rgba(255,255,255,0.28)}
+.btn-white{background:var(--white);color:var(--amber);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;padding:15px 28px;border-radius:100px;border:none;cursor:none;transition:transform .2s,box-shadow .2s;white-space:nowrap}
+.btn-white:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,0.2)}
+.cta-note{font-size:12px;color:rgba(255,255,255,0.6);margin-top:14px}
+
+/* ── Footer ── */
+footer{background:var(--ink);padding:60px 60px 36px}
+@media(max-width:768px){footer{padding:50px 24px 28px}}
+.footer-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:52px}
+@media(max-width:900px){.footer-top{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.footer-top{grid-template-columns:1fr}}
+.footer-brand p{font-family:'Lora',serif;font-size:14px;color:rgba(255,255,255,0.4);line-height:1.75;margin-top:14px;font-style:italic;max-width:260px}
+.footer-logo{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:var(--white)}
+.footer-logo span{color:var(--amber)}
+.footer-col-title{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:18px}
+.footer-col a{display:block;text-decoration:none;color:rgba(255,255,255,0.45);font-size:14px;margin-bottom:12px;transition:color .2s}
+.footer-col a:hover{color:var(--amber2)}
+.footer-bottom{border-top:1px solid rgba(255,255,255,0.07);padding-top:28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.footer-copy{font-size:13px;color:rgba(255,255,255,0.3)}
+.footer-social{display:flex;gap:12px}
+.social-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:none;transition:background .2s}
+.social-btn:hover{background:rgba(224,123,42,0.25);border-color:var(--amber)}
+
+/* ── Scroll Reveal ── */
+.reveal{opacity:0;transform:translateY(32px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-delay-1{transition-delay:.1s}
+.reveal-delay-2{transition-delay:.2s}
+.reveal-delay-3{transition-delay:.3s}
+.reveal-delay-4{transition-delay:.4s}
+.reveal-delay-5{transition-delay:.5s}
+.reveal-delay-6{transition-delay:.6s}
+</style>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- Nav -->
+<nav id="navbar">
+  <a href="#" class="nav-logo">Simple<span>Life</span> Digital</a>
+  <div class="nav-links" id="navLinks">
+    <a href="#products">Shop</a>
+    <a href="#features">Why Us</a>
+    <a href="#testimonials">Reviews</a>
+    <a href="#faq">FAQ</a>
+    <a href="#cta" class="nav-cta">Get Free Guide</a>
+  </div>
+  <button class="nav-hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-orb hero-orb-1"></div>
+  <div class="hero-orb hero-orb-2"></div>
+  <div class="hero-content">
+    <div class="hero-text">
+      <div class="hero-badge">New releases every month</div>
+      <h1 class="hero-title">Transform Your Life<em>One Guide at a Time.</em></h1>
+      <p class="hero-sub">Practical, beautifully crafted digital guides on time management, money, mindset, and more. Written for real people. Designed for real results.</p>
+      <div class="hero-actions">
+        <a href="#products" class="btn btn-amber">Browse All Products <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+        <a href="#about" class="btn btn-ghost">Learn More</a>
+      </div>
+      <div class="hero-stats">
+        <div><div class="hero-stat-num">12K+</div><div class="hero-stat-label">Happy Customers</div></div>
+        <div><div class="hero-stat-num">4.9★</div><div class="hero-stat-label">Avg. Rating</div></div>
+        <div><div class="hero-stat-num">40+</div><div class="hero-stat-label">Guides Published</div></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-card-stack">
+        <div class="h-card h-card-main">
+          <div class="h-card-icon">📚</div>
+          <div class="h-card-title">Simple Life Solutions</div>
+          <div class="h-card-sub">Complete 10-Chapter Guide</div>
+          <div class="h-card-price">£19.99</div>
+          <div class="h-card-bar"><div class="h-card-bar-fill"></div></div>
+        </div>
+        <div class="h-card h-card-2">
+          <div class="h-card-icon">💰</div>
+          <div class="h-card-title">Money Mastery</div>
+          <div class="h-card-price">£24.99</div>
+        </div>
+        <div class="h-card h-card-3">
+          <div class="h-card-icon">⏰</div>
+          <div class="h-card-title">Time Toolkit</div>
+          <div class="h-card-price">£14.99</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Marquee -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <div class="marquee-item">Instant Download</div>
+    <div class="marquee-item">Practical & Actionable</div>
+    <div class="marquee-item">12,000+ Happy Readers</div>
+    <div class="marquee-item">Money-Back Guarantee</div>
+    <div class="marquee-item">Beautifully Designed</div>
+    <div class="marquee-item">Expert-Crafted Content</div>
+    <div class="marquee-item">Lifetime Access</div>
+    <div class="marquee-item">Instant Download</div>
+    <div class="marquee-item">Practical & Actionable</div>
+    <div class="marquee-item">12,000+ Happy Readers</div>
+    <div class="marquee-item">Money-Back Guarantee</div>
+    <div class="marquee-item">Beautifully Designed</div>
+    <div class="marquee-item">Expert-Crafted Content</div>
+    <div class="marquee-item">Lifetime Access</div>
+  </div>
+</div>
+
+<!-- Products -->
+<section id="products">
+  <div class="max-w">
+    <div class="section-header reveal">
+      <div class="section-label">Our Catalogue</div>
+      <h2 class="section-title">Guides Built to<br/>Change Your Habits</h2>
+      <p class="section-sub">Every guide is packed with practical strategies you can apply the same day you read them.</p>
+    </div>
+    <div class="products-grid">
+
+      <div class="product-card featured reveal reveal-delay-1">
+        <div class="product-thumb thumb-1">📚<div class="product-badge">Bestseller</div></div>
+        <div class="product-body">
+          <div class="product-category">Complete Bundle</div>
+          <div class="product-name">Simple Life Solutions — Full Edition</div>
+          <div class="product-desc">10 expanded chapters covering time, focus, procrastination, stress, motivation and money. The complete system for a better life.</div>
+          <div class="product-meta">
+            <div><div class="product-stars">★★★★★</div><div class="product-reviews">2,841 reviews</div></div>
+            <div class="product-price"><s>£34.99</s>£19.99</div>
+          </div>
+          <button class="btn-buy">Buy Now <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+
+      <div class="product-card reveal reveal-delay-2">
+        <div class="product-thumb thumb-2">⏰</div>
+        <div class="product-body">
+          <div class="product-category">Time Management</div>
+          <div class="product-name">The Time Mastery Toolkit</div>
+          <div class="product-desc">A deep-dive guide into planning, deep work, and eliminating distractions for peak daily performance.</div>
+          <div class="product-meta">
+            <div><div class="product-stars">★★★★★</div><div class="product-reviews">1,204 reviews</div></div>
+            <div class="product-price">£14.99</div>
+          </div>
+          <button class="btn-buy">Buy Now <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+
+      <div class="product-card reveal reveal-delay-3">
+        <div class="product-thumb thumb-3">💰<div class="product-badge">New</div></div>
+        <div class="product-body">
+          <div class="product-category">Money Management</div>
+          <div class="product-name">Money Blueprint: Build Wealth Daily</div>
+          <div class="product-desc">From budgeting basics to long-term wealth habits — a complete financial framework for everyday people.</div>
+          <div class="product-meta">
+            <div><div class="product-stars">★★★★★</div><div class="product-reviews">876 reviews</div></div>
+            <div class="product-price">£24.99</div>
+          </div>
+          <button class="btn-buy">Buy Now <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+
+      <div class="product-card reveal reveal-delay-1">
+        <div class="product-thumb thumb-4">🧠</div>
+        <div class="product-body">
+          <div class="product-category">Mindset & Motivation</div>
+          <div class="product-name">The Discipline Code</div>
+          <div class="product-desc">The science of habits, motivation, and showing up consistently — even when you don't feel like it.</div>
+          <div class="product-meta">
+            <div><div class="product-stars">★★★★★</div><div class="product-reviews">654 reviews</div></div>
+            <div class="product-price">£17.99</div>
+          </div>
+          <button class="btn-buy">Buy Now <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+
+      <div class="product-card reveal reveal-delay-2">
+        <div class="product-thumb thumb-5">🔥</div>
+        <div class="product-body">
+          <div class="product-category">Stress & Burnout</div>
+          <div class="product-name">Burnout to Balance: Recovery Guide</div>
+          <div class="product-desc">Recognise, recover, and build resilience against chronic stress and burnout for good.</div>
+          <div class="product-meta">
+            <div><div class="product-stars">★★★★☆</div><div class="product-reviews">487 reviews</div></div>
+            <div class="product-price">£12.99</div>
+          </div>
+          <button class="btn-buy">Buy Now <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+
+      <div class="product-card reveal reveal-delay-3">
+        <div class="product-thumb thumb-6">🎯<div class="product-badge">Popular</div></div>
+        <div class="product-body">
+          <div class="product-category">Procrastination</div>
+          <div class="product-name">Stop Delaying, Start Living</div>
+          <div class="product-desc">Practical tools to beat procrastination, build momentum, and finally follow through on what matters most.</div>
+          <div class="product-meta">
+            <div><div class="product-stars">★★★★★</div><div class="product-reviews">1,092 reviews</div></div>
+            <div class="product-price">£14.99</div>
+          </div>
+          <button class="btn-buy">Buy Now <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features">
+  <div class="max-w">
+    <div class="section-header reveal">
+      <div class="section-label">Why Choose Us</div>
+      <h2 class="section-title" style="color:var(--white)">Everything You Need.<br/>Nothing You Don't.</h2>
+      <p class="section-sub">We don't do theory for theory's sake. Every word in every guide earns its place.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">Instant Digital Delivery</div>
+        <div class="feature-desc">Download your guide the second your payment clears. No waiting, no shipping, no friction. Start reading in under 60 seconds.</div>
+      </div>
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon">✅</div>
+        <div class="feature-title">30-Day Money-Back Guarantee</div>
+        <div class="feature-desc">Not satisfied? We'll refund every penny, no questions asked. We stand behind every word we publish.</div>
+      </div>
+      <div class="feature-card reveal reveal-delay-3">
+        <div class="feature-icon">📱</div>
+        <div class="feature-title">Read Anywhere, Any Device</div>
+        <div class="feature-desc">PDF format works on phones, tablets, e-readers, and computers. Your guides go wherever you go.</div>
+      </div>
+      <div class="feature-card reveal reveal-delay-4">
+        <div class="feature-icon">🔄</div>
+        <div class="feature-title">Lifetime Access & Updates</div>
+        <div class="feature-desc">Buy once, own forever. When we update a guide with new content, you get it automatically at no extra cost.</div>
+      </div>
+      <div class="feature-card reveal reveal-delay-5">
+        <div class="feature-icon">🎯</div>
+        <div class="feature-title">Action-First Content</div>
+        <div class="feature-desc">No fluff, no filler. Each chapter ends with concrete steps you can take today. Real change starts on page one.</div>
+      </div>
+      <div class="feature-card reveal reveal-delay-6">
+        <div class="feature-icon">🔒</div>
+        <div class="feature-title">Secure Checkout</div>
+        <div class="feature-desc">256-bit SSL encryption on every transaction. Your payment details are never stored on our servers.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section id="testimonials">
+  <div class="max-w">
+    <div class="section-header reveal" style="text-align:center">
+      <div class="section-label" style="justify-content:center">Customer Reviews</div>
+      <h2 class="section-title">Loved by Thousands<br/>of Real Readers</h2>
+    </div>
+    <div class="testi-grid">
+      <div class="testi-card testi-featured reveal reveal-delay-1">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">I've read dozens of self-help books over the years and most of them say the same things in different ways. Simple Life Solutions is genuinely different — it's practical, concise, and the advice actually sticks. I changed three major habits within the first week.</div>
+        <div class="testi-author"><div class="testi-avatar av1">S</div><div><div class="testi-name">Sarah M.</div><div class="testi-role">Marketing Manager, London</div></div></div>
+      </div>
+      <div class="testi-card reveal reveal-delay-2">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">The Money Blueprint completely changed how I think about spending. I finally feel in control of my finances for the first time in years. Worth every penny.</div>
+        <div class="testi-author"><div class="testi-avatar av2">J</div><div><div class="testi-name">James K.</div><div class="testi-role">Freelancer, Manchester</div></div></div>
+      </div>
+      <div class="testi-card reveal reveal-delay-3">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">I was deeply skeptical — I've seen too many 'life-changing' products that delivered nothing. This one is different. The procrastination guide alone was worth the price of the whole bundle.</div>
+        <div class="testi-author"><div class="testi-avatar av3">P</div><div><div class="testi-name">Priya D.</div><div class="testi-role">Nurse, Birmingham</div></div></div>
+      </div>
+      <div class="testi-card reveal reveal-delay-1">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">Bought the full bundle on a Friday, read half of it over the weekend. By Monday I had restructured my entire workday. Genuinely outstanding content.</div>
+        <div class="testi-author"><div class="testi-avatar av4">T</div><div><div class="testi-name">Tom R.</div><div class="testi-role">Entrepreneur, Leeds</div></div></div>
+      </div>
+      <div class="testi-card reveal reveal-delay-2">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">The burnout recovery guide felt like it was written specifically for me. Clear, compassionate, and practical. I've already recommended it to three colleagues.</div>
+        <div class="testi-author"><div class="testi-avatar av5">A</div><div><div class="testi-name">Aisha L.</div><div class="testi-role">Teacher, Bristol</div></div></div>
+      </div>
+      <div class="testi-card reveal reveal-delay-3">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">Simple, elegant, and genuinely useful. I keep coming back to certain chapters again and again. The design is beautiful too — makes it a pleasure to read.</div>
+        <div class="testi-author"><div class="testi-avatar av6">M</div><div><div class="testi-name">Marcus W.</div><div class="testi-role">Designer, Edinburgh</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- About -->
+<section id="about">
+  <div class="max-w">
+    <div class="about-inner">
+      <div class="about-visual reveal">
+        <div class="about-img-box">📖<div class="about-badge-float"><strong>12,000+</strong>Lives Changed</div></div>
+      </div>
+      <div class="about-text reveal reveal-delay-2">
+        <div class="section-label">About SimpleLife Digital</div>
+        <h2 class="section-title">We Write What<br/>Actually Works.</h2>
+        <p class="section-sub">SimpleLife Digital was founded on one belief: self-improvement advice should be practical, honest, and accessible — not buried in 400-page books full of filler.</p>
+        <ul class="check-list">
+          <li>Every guide is tested with real readers before publishing</li>
+          <li>Written by practitioners, not theorists</li>
+          <li>Updated regularly as new research emerges</li>
+          <li>Designed for people with busy lives and limited time</li>
+          <li>No jargon, no fluff — just clear, actionable guidance</li>
+        </ul>
+        <a href="#products" class="btn btn-amber">Shop All Guides <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="max-w">
+    <div class="section-header reveal" style="text-align:center">
+      <div class="section-label" style="justify-content:center">FAQ</div>
+      <h2 class="section-title" style="color:var(--white)">Questions? We've Got Answers.</h2>
+    </div>
+    <div class="faq-grid" id="faqGrid">
+
+      <div class="faq-item reveal reveal-delay-1">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-q-text">How do I receive my digital guide after purchase?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a"><div class="faq-a-inner">You'll receive an email with your download link within seconds of completing your purchase. The file will be a beautifully formatted PDF you can read on any device.</div></div>
+      </div>
+
+      <div class="faq-item reveal reveal-delay-2">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-q-text">What is your refund policy?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a"><div class="faq-a-inner">We offer a full 30-day money-back guarantee on every purchase. If you're not completely satisfied, simply email us and we'll process your refund within 24 hours — no questions asked.</div></div>
+      </div>
+
+      <div class="faq-item reveal reveal-delay-3">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-q-text">Can I read the guides on my phone or tablet?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a"><div class="faq-a-inner">Absolutely. Our guides are PDF format and work perfectly on all devices — iPhone, Android, iPad, Kindle, Mac, PC, and more. Read at home, on the commute, or anywhere in between.</div></div>
+      </div>
+
+      <div class="faq-item reveal reveal-delay-4">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-q-text">Do I get access to future updates?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a"><div class="faq-a-inner">Yes! When we update any guide, we send the new version to everyone who purchased it — completely free. Buy once and benefit forever.</div></div>
+      </div>
+
+      <div class="faq-item reveal reveal-delay-1">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-q-text">Is it safe to buy from your store?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a"><div class="faq-a-inner">Completely. All transactions are protected with 256-bit SSL encryption. We use trusted payment processors and never store your payment details on our servers.</div></div>
+      </div>
+
+      <div class="faq-item reveal reveal-delay-2">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-q-text">Can I purchase as a gift for someone else?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a"><div class="faq-a-inner">Definitely! Simply enter the recipient's email address at checkout and the download link will be sent directly to them. A thoughtful, instant gift for anyone looking to improve their life.</div></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Email CTA -->
+<section id="cta">
+  <div class="cta-inner reveal">
+    <h2>Get a Free Chapter — On Us.</h2>
+    <p>Join 12,000+ readers and receive our most popular chapter from Simple Life Solutions, completely free.</p>
+    <div class="email-form">
+      <input type="email" placeholder="Enter your email address" id="emailInput"/>
+      <button class="btn-white" onclick="handleSignup()">Send It Free</button>
+    </div>
+    <div class="cta-note" id="ctaNote">No spam, ever. Unsubscribe any time. We respect your inbox.</div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="max-w">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo">Simple<span>Life</span> Digital</div>
+        <p>Practical guides for busy people who want real change. Written with care, designed with purpose.</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Shop</div>
+        <a href="#products">All Guides</a>
+        <a href="#products">Bundles</a>
+        <a href="#products">New Releases</a>
+        <a href="#products">Bestsellers</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Company</div>
+        <a href="#about">About Us</a>
+        <a href="#faq">FAQ</a>
+        <a href="#">Affiliates</a>
+        <a href="#">Contact</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Legal</div>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Refund Policy</a>
+        <a href="#">Cookie Policy</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2025 SimpleLife Digital. All rights reserved.</div>
+      <div class="footer-social">
+        <div class="social-btn" title="Instagram">📸</div>
+        <div class="social-btn" title="Twitter / X">𝕏</div>
+        <div class="social-btn" title="TikTok">🎵</div>
+        <div class="social-btn" title="YouTube">▶</div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ── Custom Cursor ──
+const cursor     = document.getElementById('cursor');
+const cursorRing = document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursor.style.left=mx+'px';cursor.style.top=my+'px'});
+(function animRing(){rx+=(mx-rx)*.14;ry+=(my-ry)*.14;cursorRing.style.left=rx+'px';cursorRing.style.top=ry+'px';requestAnimationFrame(animRing)})();
+document.querySelectorAll('a,button,.product-card,.faq-q,.social-btn').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cursor.classList.add('expanded');cursorRing.classList.add('expanded')});
+  el.addEventListener('mouseleave',()=>{cursor.classList.remove('expanded');cursorRing.classList.remove('expanded')});
+});
+
+// ── Nav Scroll ──
+window.addEventListener('scroll',()=>{
+  document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>40);
+});
+
+// ── Mobile Menu ──
+function toggleMenu(){
+  document.getElementById('navLinks').classList.toggle('open');
+}
+document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',()=>{
+  document.getElementById('navLinks').classList.remove('open');
+}));
+
+// ── Scroll Reveal ──
+const revealEls=document.querySelectorAll('.reveal');
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target)}});
+},{threshold:0.12});
+revealEls.forEach(el=>observer.observe(el));
+
+// ── FAQ ──
+function toggleFaq(btn){
+  const item=btn.closest('.faq-item');
+  const isOpen=item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i=>i.classList.remove('open'));
+  if(!isOpen)item.classList.add('open');
+}
+
+// ── Email Signup ──
+function handleSignup(){
+  const input=document.getElementById('emailInput');
+  const note=document.getElementById('ctaNote');
+  if(!input.value||!input.value.includes('@')){
+    input.style.borderColor='rgba(255,100,100,0.6)';
+    setTimeout(()=>input.style.borderColor='',1500);
+    return;
+  }
+  note.textContent='🎉 You\'re in! Check your inbox in a moment.';
+  note.style.color='rgba(255,255,255,0.95)';
+  input.value='';
+  input.placeholder='Thanks! Check your email ✓';
+}
+
+// ── Buy Buttons (placeholder) ──
+document.querySelectorAll('.btn-buy').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    const name=this.closest('.product-card').querySelector('.product-name').textContent;
+    const orig=this.innerHTML;
+    this.textContent='✓ Added!';
+    this.style.background='#2ecc8a';
+    setTimeout(()=>{this.innerHTML=orig;this.style.background='';},1800);
+  });
+});
+</script>
+</body>
+</html>
